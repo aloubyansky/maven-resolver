@@ -18,6 +18,8 @@
  */
 package org.apache.maven.resolver.examples;
 
+import java.util.List;
+
 import org.apache.maven.resolver.examples.util.Booter;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession.CloseableSession;
@@ -26,6 +28,7 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.CollectResult;
 import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.repository.RemoteRepository;
 
 /**
  * Collects the transitive dependencies of an artifact.
@@ -44,11 +47,15 @@ public class GetDependencyTree {
         try (RepositorySystem system = Booter.newRepositorySystem(Booter.selectFactory(args));
                 CloseableSession session =
                         Booter.newRepositorySystemSession(system).build()) {
-            Artifact artifact = new DefaultArtifact("org.apache.maven:maven-resolver-provider:3.6.1");
+            Artifact artifact = new DefaultArtifact("com.microsoft.azure:msal4j:1.13.1.redhat-00001");
 
             CollectRequest collectRequest = new CollectRequest();
             collectRequest.setRoot(new Dependency(artifact, ""));
-            collectRequest.setRepositories(Booter.newRepositories(system, session));
+
+            collectRequest.setRepositories(List.of(
+                    new RemoteRepository.Builder("central", "default", "https://repo1.maven.org/maven2").build(),
+                    new RemoteRepository.Builder("redhat", "default", "https://maven.repository.redhat.com/ga").build()
+            ));
 
             CollectResult collectResult = system.collectDependencies(session, collectRequest);
 
